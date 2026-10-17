@@ -1,0 +1,648 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Atlas Pulse">
+<link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest">
+<style>html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Atlas Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a phone-sized executive app (overview / alerts / ask) on a quiet stage; presenter notes beside it on wide screens, full-bleed app on phones. */
+:root{
+  --stage:#D8DFDE; --bg:#EEF2F1; --surface:#FFFFFF; --surface-2:#F5F8F7;
+  --ink:#13202A; --ink-2:#475763; --ink-3:#788893; --line:#DCE3E2;
+  --accent:#0B6E79; --accent-ink:#FFFFFF; --accent-soft:#D5EBEC;
+  --ok:#1E8449; --ok-soft:#DCF0E3; --warn:#AD6800; --warn-soft:#FAEACD; --crit:#C0352A; --crit-soft:#F7DDD9;
+  --shadow:0 18px 50px rgba(19,32,42,.18);
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --stage:#060B0E; --bg:#0D151B; --surface:#15212A; --surface-2:#1B2832;
+  --ink:#E5EDF0; --ink-2:#A7B6BF; --ink-3:#73848E; --line:#25343E;
+  --accent:#4BB9C4; --accent-ink:#06191C; --accent-soft:#143A40;
+  --ok:#4CC27E; --ok-soft:#14301E; --warn:#E9A73B; --warn-soft:#382A10; --crit:#F06A5D; --crit-soft:#3B1916;
+  --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --stage:#060B0E; --bg:#0D151B; --surface:#15212A; --surface-2:#1B2832;
+  --ink:#E5EDF0; --ink-2:#A7B6BF; --ink-3:#73848E; --line:#25343E;
+  --accent:#4BB9C4; --accent-ink:#06191C; --accent-soft:#143A40;
+  --ok:#4CC27E; --ok-soft:#14301E; --warn:#E9A73B; --warn-soft:#382A10; --crit:#F06A5D; --crit-soft:#3B1916;
+  --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--stage);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+*,*::before,*::after{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,.row:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.01em}
+
+/* stage */
+.stage{height:100%;display:flex;justify-content:center;align-items:center;gap:48px;padding-block:24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.device{position:relative;width:390px;max-width:100%;height:min(844px,100%);background:var(--bg);border-radius:38px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);display:flex;flex-direction:column;flex:none}
+@media (max-width:520px){
+  .stage{padding:0}
+  .device{width:100%;height:100%;border-radius:0;border:0;box-shadow:none}
+}
+.presenter{width:340px;flex:none;display:flex;flex-direction:column;gap:20px}
+@media (max-width:860px){.presenter{display:none}}
+
+/* app chrome */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px 10px;
+  padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+.org{display:flex;flex-direction:column;min-width:0}
+.org b{font-family:var(--f-display);font-stretch:85%;font-weight:700;font-size:1.05rem;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live{display:flex;align-items:center;gap:6px;color:var(--ink-3)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft);flex:none}
+@media (prefers-reduced-motion:no-preference){.dot{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{box-shadow:0 0 0 6px transparent}}
+.pill-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.8rem;font-weight:600;color:var(--ink-2);white-space:nowrap}
+
+.screens{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.screen{display:flex;flex-direction:column;gap:18px;padding-block:6px 24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);background:var(--surface);padding-block:8px 10px;
+  padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.72rem;font-weight:600;color:var(--ink-3);padding:4px 0;position:relative}
+.tab svg{width:22px;height:22px}
+.tab[aria-selected="true"]{color:var(--accent)}
+.badge{position:absolute;top:0;left:calc(50% + 6px);min-width:17px;height:17px;border-radius:9px;background:var(--crit);color:#fff;font-size:.66rem;display:grid;place-items:center;padding:0 4px}
+
+/* overview */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.ring{width:104px;height:104px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .v{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .v b{font-family:var(--f-display);font-weight:800;font-size:2.1rem;line-height:1;font-stretch:80%}
+.ring .v span{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-top:3px}
+.hero h1{font-family:var(--f-display);font-stretch:82%;font-weight:700;font-size:1.6rem;line-height:1.08;margin:0;text-wrap:balance}
+.hero p{margin:6px 0 0;color:var(--ink-2);font-size:.86rem}
+
+.brief{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.brief .lbl{display:flex;align-items:center;gap:8px;font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;font-weight:700;color:var(--accent)}
+.brief p{margin:0;font-size:.92rem}
+.brief .acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border-radius:999px;padding:8px 14px;font-size:.82rem;font-weight:600;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px -8px}
+.sec-h h2{margin:0;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
+.sec-h span{font-size:.75rem;color:var(--ink-3)}
+
+.list{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.row{display:grid;grid-template-columns:4px 1fr auto auto;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px 12px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row .stripe{align-self:stretch;border-radius:0 3px 3px 0;background:transparent}
+.row.warn .stripe{background:var(--warn)} .row.crit .stripe{background:var(--crit)}
+.row .t{min-width:0}
+.row .t b{display:block;font-weight:600;font-size:.93rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t small{display:block;color:var(--ink-3);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.warn .t small{color:var(--warn)} .row.crit .t small{color:var(--crit)}
+.row .sc{font-family:var(--f-display);font-weight:700;font-stretch:80%;font-size:1.25rem;min-width:30px;text-align:right}
+.row.warn .sc{color:var(--warn)} .row.crit .sc{color:var(--crit)}
+.spark{width:60px;height:24px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:700;letter-spacing:.02em}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.crit{background:var(--crit-soft);color:var(--crit)} .chip.info{background:var(--accent-soft);color:var(--accent)}
+
+.secu{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center}
+.secu .big{grid-row:span 2;font-family:var(--f-display);font-weight:800;font-stretch:78%;font-size:2.3rem;line-height:1;color:var(--accent)}
+.secu b{font-size:.92rem}
+.secu small{color:var(--ink-2);font-size:.8rem}
+
+.sites{display:flex;flex-wrap:wrap;gap:8px}
+.site{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:.8rem}
+.site i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.site.warn i{background:var(--warn)} .site.crit i{background:var(--crit)}
+.foot{font-size:.72rem;color:var(--ink-3);text-align:center;padding-top:4px}
+
+/* alerts */
+.alert{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 15px;display:flex;flex-direction:column;gap:6px;text-align:left;width:100%}
+.alert .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.alert p{margin:0;font-size:.9rem}
+.alert.past{background:transparent}
+.alert.past p{color:var(--ink-2)}
+.note{font-size:.8rem;color:var(--ink-3);background:var(--surface-2);border-radius:14px;padding:12px 14px;margin:0}
+
+/* ask */
+.ask{display:flex;flex-direction:column;height:100%}
+.ask .scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-block:6px 14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.msg{max-width:88%;border-radius:18px;padding:10px 14px;font-size:.9rem;line-height:1.5;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:6px}
+.msg.ai{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px}
+.msg.ai ul{margin:6px 0 0;padding-left:18px}
+.msg.ai p{margin:0 0 6px} .msg.ai p:last-child{margin:0}
+.msg.ai .src{display:block;margin-top:8px;font-size:.7rem;color:var(--ink-3)}
+.msg.think{color:var(--ink-3)}
+.sugg{display:flex;flex-wrap:wrap;gap:8px}
+.sugg button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:.8rem;text-align:left}
+.composer{display:flex;gap:8px;border-top:1px solid var(--line);background:var(--surface);padding-block:10px;
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.composer input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:10px 14px;font:inherit;font-size:.9rem;color:var(--ink)}
+.composer button{width:42px;height:42px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.composer button svg{width:18px;height:18px}
+.ask-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ask-h h1{margin:0;font-family:var(--f-display);font-stretch:82%;font-size:1.5rem}
+
+/* push banner */
+.push{position:absolute;left:10px;right:10px;top:10px;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;text-align:left}
+.push .ic{grid-row:span 2;width:34px;height:34px;border-radius:9px;background:var(--crit);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:800}
+.push b{font-size:.85rem} .push span{font-size:.84rem;color:var(--ink-2)}
+@media (prefers-reduced-motion:no-preference){.push{animation:drop .35s ease-out}}
+@keyframes drop{from{transform:translateY(-120%)}}
+
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(8,14,18,.38);z-index:20}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:92%;z-index:21;background:var(--bg);border-radius:24px 24px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:rise .28s ease-out}}
+@keyframes rise{from{transform:translateY(100%)}}
+.sheet .grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 0;flex:none}
+.sheet .body{overflow-y:auto;display:flex;flex-direction:column;gap:16px;padding-block:10px 26px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sheet h2{margin:4px 0 0;font-family:var(--f-display);font-stretch:82%;font-weight:700;font-size:1.5rem;line-height:1.1;text-wrap:balance}
+.sheet .proto{color:var(--ink-3)}
+.x{width:32px;height:32px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;flex:none}
+.lead{margin:0;font-size:.95rem}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.kpi small{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:700}
+.kpi b{display:block;font-family:var(--f-display);font-stretch:82%;font-weight:700;font-size:1.35rem;margin-top:2px}
+.kpi span{display:block;font-size:.74rem;color:var(--ink-3)}
+.kpi.bad b{color:var(--warn)} .kpi.vbad b{color:var(--crit)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.card h3{margin:0 0 8px;font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3)}
+.card p{margin:0 0 8px;font-size:.9rem} .card p:last-child{margin:0}
+.ev{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.ev li{display:grid;grid-template-columns:16px 1fr;gap:8px;font-size:.84rem}
+.ev li::before{content:"";width:8px;height:8px;margin-top:6px;border-radius:2px;background:var(--accent)}
+.chart{width:100%;height:auto;display:block}
+.demo-group{display:flex;flex-direction:column;gap:8px}
+.demo-group h3{margin:0;font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{border-radius:9px;padding:9px;font-weight:600;font-size:.85rem;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.dbtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 14px;font-weight:600;font-size:.88rem;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dbtn.primary{background:var(--crit);border-color:var(--crit);color:#fff}
+.dbtn small{font-weight:400;opacity:.8;font-size:.76rem}
+
+/* presenter panel */
+.presenter .eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:700}
+.presenter h2{margin:4px 0 6px;font-family:var(--f-display);font-stretch:80%;font-size:2.1rem;line-height:1.02}
+.presenter p{margin:0;color:var(--ink-2);font-size:.9rem;max-width:62ch}
+.flow{display:flex;flex-direction:column;gap:0;border-left:2px solid var(--line);margin-left:6px}
+.flow div{position:relative;padding:0 0 12px 18px;font-size:.84rem;color:var(--ink-2)}
+.flow div b{display:block;color:var(--ink);font-size:.88rem}
+.flow div::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--accent)}
+</style>
+
+<!-- Sample dataset. Shape modeled on nGeniusONE service KPIs + Arbor DDoS events.
+     Replace this block with an export from your NETSCOUT data model to drive the demo. -->
+<script type="application/json" id="dataset">
+{
+ "meta":{"source":"Sample data modeled on nGeniusONE service monitoring and Arbor DDoS events","version":"0.1"},
+ "profiles":{
+  "bank":{
+   "org":"Banque Atlas","kind":"Retail bank · sample data","usersWord":"customers",
+   "services":[
+    {"id":"mobile","name":"Mobile banking app","protocol":"HTTPS · REST API","volume":"3,850 logins/min","respLabel":"Login time",
+     "kpi":{"avail":99.6,"resp":1840,"respBase":180,"fail":3.1,"failBase":0.4},"status":"warn","score":74,
+     "incident":{"minutesAgo":22,"headline":"Slow logins for 14% of app users",
+      "summary":"Customers wait 6 to 9 seconds to log in to the mobile app, mostly in Casablanca and Rabat. Payments and transfers inside the app work normally.",
+      "cause":"The authentication server auth-02 is answering in 1.8 s instead of its usual 120 ms. Network paths and the app servers look normal.",
+      "impact":"About 6,700 customers affected. Login success is still 96.9%.",
+      "action":"The NOC opened ticket INC-4471 and is moving login traffic to auth-01.",
+      "sites":["Casablanca","Rabat"],
+      "evidence":["Login (LDAP bind) response time on auth-02: 1,840 ms, baseline 120 ms","Failed logins up from 0.4% to 3.1% since {start}","Network round-trip to the data center normal at 8 ms","Only users routed to auth-02 are affected (52% of logins)"]}},
+    {"id":"cards","name":"Card payments","protocol":"ISO 8583 · card switch","volume":"2,140 authorizations/min","respLabel":"Authorization time",
+     "kpi":{"avail":99.99,"resp":210,"respBase":205,"fail":0.3,"failBase":0.3},"status":"ok","score":97},
+    {"id":"atm","name":"ATM network","protocol":"NDC · 412 ATMs","volume":"612 withdrawals/min","respLabel":"Withdrawal time",
+     "kpi":{"avail":99.8,"resp":2900,"respBase":2850,"fail":0.6,"failBase":0.6},"status":"ok","score":95},
+    {"id":"core","name":"Core banking","protocol":"Core system · Oracle DB","volume":"9,300 transactions/min","respLabel":"Transaction time",
+     "kpi":{"avail":99.99,"resp":42,"respBase":40,"fail":0.1,"failBase":0.1},"status":"ok","score":96},
+    {"id":"web","name":"Internet banking","protocol":"HTTPS · web portal","volume":"1,120 sessions/min","respLabel":"Page load",
+     "kpi":{"avail":99.9,"resp":640,"respBase":600,"fail":0.5,"failBase":0.4},"status":"ok","score":94},
+    {"id":"swift","name":"Transfers & SWIFT","protocol":"SWIFT · MT/MX messages","volume":"85 messages/min","respLabel":"Processing time",
+     "kpi":{"avail":100,"resp":380,"respBase":370,"fail":0,"failBase":0},"status":"ok","score":98},
+    {"id":"voice","name":"Branch phones & video","protocol":"SIP · RTP","volume":"340 active calls","respLabel":"Call setup",
+     "kpi":{"avail":99.7,"resp":1200,"respBase":1150,"fail":0.8,"failBase":0.7},"status":"ok","score":93}
+   ],
+   "simulate":{"service":"cards","status":"crit","score":46,"kpi":{"avail":91.0,"resp":2400,"fail":9.2},
+     "incident":{"minutesAgo":2,"headline":"9% of card payments are being declined",
+      "summary":"Card payments in shops and online fail for about 1 in 11 customers across all regions. ATM withdrawals are not affected.",
+      "cause":"One of the two links to the card switch (link B) stopped answering at {start}. Transactions sent on that link time out and are declined with code 91.",
+      "impact":"About 190 declined payments per minute, roughly 76,000 MAD of customer spending blocked every minute (average ticket 400 MAD).",
+      "action":"The NOC was alerted automatically. Recommended: take link B out of rotation so all traffic uses link A.",
+      "sites":["All regions"],
+      "evidence":["ISO 8583 response code 91 (issuer unavailable) rose from 0.1% to 9.2%","Link B: 38% TCP retransmissions and no responses since {start}","Link A healthy, answering in 205 ms","Declines are spread evenly across regions, so it is not a branch problem"]}},
+   "security":{"attacks24h":2,"largest":"4.2 Gbps UDP flood","time":"03:14","target":"internet banking portal","result":"Stopped automatically in 41 seconds. No customer impact."},
+   "sites":["Casablanca","Rabat","Marrakech","Tanger","Fès","Agadir","Oujda","Laâyoune"],
+   "history":[{"when":"Today 03:14","sev":"info","text":"DDoS attack (4.2 Gbps) on the internet banking portal stopped automatically. No customer impact."},
+              {"when":"Yesterday 18:20","sev":"warn","text":"Internet banking pages slow for 6 minutes. Resolved without action."}],
+   "suggestions":["What's wrong right now?","How many customers are affected?","Was there a cyber attack last night?","Quel est l'impact client ?"]
+  },
+  "telco":{
+   "org":"Atlas Telecom","kind":"Mobile & fixed operator · sample data","usersWord":"subscribers",
+   "services":[
+    {"id":"data","name":"Mobile data (4G/5G)","protocol":"GTP · S1-U / N3","volume":"2.1 M active sessions","respLabel":"Latency",
+     "kpi":{"avail":99.95,"resp":38,"respBase":36,"fail":0.5,"failBase":0.5},"status":"ok","score":93},
+    {"id":"volte","name":"Voice calls (VoLTE)","protocol":"SIP · IMS core","volume":"18,400 calls/min","respLabel":"Call setup",
+     "kpi":{"avail":93.8,"resp":4700,"respBase":1900,"fail":6.2,"failBase":0.2},"status":"warn","score":71,
+     "incident":{"minutesAgo":17,"headline":"6% of VoLTE calls fail to connect in Rabat-Salé",
+      "summary":"Some customers in Rabat, Salé and Kénitra hear a busy tone or 'call failed' when dialing. Calls that connect have normal quality.",
+      "cause":"Call-control node P-CSCF-RBT-2 is rejecting new calls with SIP 503 (overloaded) since {start}. Its CPU is at 96%.",
+      "impact":"About 1,100 failed call attempts per minute. Roughly 210,000 subscribers are served by that node.",
+      "action":"The core team is shifting load to P-CSCF-RBT-1. Phones fall back to 3G voice in the meantime.",
+      "sites":["Rabat","Kénitra"],
+      "evidence":["SIP 503 responses from P-CSCF-RBT-2 on 6.2% of call attempts, baseline 0.2%","Call setup time up from 1.9 s to 4.7 s in the region","Other P-CSCF nodes normal","Voice quality (MOS) on connected calls 4.2, unchanged"]}},
+    {"id":"sms","name":"SMS","protocol":"SMPP · SMSC","volume":"41,000 messages/min","respLabel":"Delivery time",
+     "kpi":{"avail":99.9,"resp":1600,"respBase":1550,"fail":0.4,"failBase":0.4},"status":"ok","score":95},
+    {"id":"dns","name":"Internet name lookups (DNS)","protocol":"DNS · resolvers","volume":"1.6 M queries/s","respLabel":"Lookup time",
+     "kpi":{"avail":99.99,"resp":12,"respBase":11,"fail":0.05,"failBase":0.05},"status":"ok","score":97},
+    {"id":"roaming","name":"Roaming","protocol":"Diameter · SS7","volume":"96,000 roamers","respLabel":"Signaling time",
+     "kpi":{"avail":99.8,"resp":95,"respBase":90,"fail":0.3,"failBase":0.3},"status":"ok","score":94},
+    {"id":"vpn","name":"Business VPN & MPLS","protocol":"MPLS · IPsec","volume":"1,850 enterprise sites","respLabel":"Latency",
+     "kpi":{"avail":99.99,"resp":14,"respBase":14,"fail":0.02,"failBase":0.02},"status":"ok","score":98},
+    {"id":"fixed","name":"Home fibre & ADSL","protocol":"PPPoE · IPoE","volume":"780,000 lines online","respLabel":"Latency",
+     "kpi":{"avail":99.9,"resp":9,"respBase":9,"fail":0.2,"failBase":0.2},"status":"ok","score":95}
+   ],
+   "simulate":{"service":"dns","status":"crit","score":44,"kpi":{"avail":78,"resp":940,"fail":22},
+     "incident":{"minutesAgo":2,"headline":"Websites and apps slow to open in Casablanca",
+      "summary":"Mobile and fibre customers in Casablanca wait several seconds before any website or app loads. Once loaded, speed is normal.",
+      "cause":"DNS resolver dns-casa-1 is timing out on 22% of queries since {start}. Phones retry on the backup after 2 seconds.",
+      "impact":"About 1.3 million subscribers in Casablanca. Expect complaints on social media within 15 minutes.",
+      "action":"Recommended: remove dns-casa-1 from the load-balancer pool until it is fixed.",
+      "sites":["Casablanca"],
+      "evidence":["DNS timeouts on dns-casa-1: 22%, baseline 0.05%","Average lookup time 940 ms, baseline 11 ms","Query volume is normal, so this is not an attack","dns-casa-2 and the Rabat resolvers are healthy"]}},
+   "security":{"attacks24h":7,"largest":"38 Gbps DNS amplification","time":"21:47","target":"an enterprise hosting customer","result":"Stopped automatically by the scrubbing center in 28 seconds."},
+   "sites":["Casablanca","Rabat","Kénitra","Marrakech","Tanger","Fès","Agadir","Oujda"],
+   "history":[{"when":"Yesterday 21:47","sev":"info","text":"38 Gbps DDoS attack against an enterprise customer stopped automatically."},
+              {"when":"Yesterday 14:05","sev":"warn","text":"Roaming data in France slow for 12 minutes. Resolved by the partner operator."}],
+   "suggestions":["What's wrong right now?","How many subscribers are affected?","Were we attacked last night?","Quel est l'impact client ?"]
+  }
+ }
+}
+</script>
+
+</head><body>
+<div class="stage">
+  <div class="device" id="device">
+    <header class="topbar">
+      <div class="org">
+        <b id="orgName">Banque Atlas</b>
+        <span class="live mono"><i class="dot" id="liveDot"></i><span id="updated">Live</span></span>
+      </div>
+      <button class="pill-btn" id="demoBtn" aria-haspopup="dialog">Demo controls</button>
+    </header>
+
+    <button class="push" id="push" hidden></button>
+
+    <main class="screens" id="screens">
+      <section class="screen" id="scr-overview" aria-label="Overview"></section>
+      <section class="screen" id="scr-alerts" aria-label="Alerts" hidden></section>
+      <section class="ask" id="scr-ask" aria-label="Ask Copilot" hidden>
+        <div class="scroll" id="chat"></div>
+        <form class="composer" id="composer">
+          <input id="q" type="text" autocomplete="off" placeholder="Ask about your network…" aria-label="Your question">
+          <button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </form>
+      </section>
+    </main>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="overview" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Overview</button>
+      <button class="tab" role="tab" data-tab="alerts" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg>Alerts<span class="badge" id="badge" hidden>0</span></button>
+      <button class="tab" role="tab" data-tab="ask" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8M8 13h5"/></svg>Ask Copilot</button>
+    </nav>
+
+    <div class="scrim" id="scrim" hidden></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden><div class="grab"></div><div class="body" id="sheetBody"></div></div>
+  </div>
+
+  <aside class="presenter" aria-label="About this prototype">
+    <div>
+      <div class="eyebrow">Concept prototype</div>
+      <h2>Your network, in an executive's pocket</h2>
+      <p>Business services instead of interfaces. Plain-language answers grounded in packet data. Push alerts only when customers feel it.</p>
+    </div>
+    <div class="flow">
+      <div><b>InfiniStream probes</b>Packet capture at the data center, internet edge and core</div>
+      <div><b>nGeniusONE · Smart Data</b>Service KPIs: response time, failures, availability, per site</div>
+      <div><b>nGenius Copilot + MCP</b>Turns the data into evidence-based answers</div>
+      <div><b>Executive agent</b>Checks every 5 minutes, scores business impact, decides whether to notify</div>
+      <div><b>Phone app</b>Read-only, behind SSO and MFA</div>
+    </div>
+    <div class="demo-group" id="deskDemo"></div>
+    <p class="mono">All figures are sample data for demonstration.</p>
+  </aside>
+</div>
+
+<script>
+(function(){
+const DATA = JSON.parse(document.getElementById('dataset').textContent);
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+
+const state = {
+  profile: (store.get('sp.profile') === 'telco') ? 'telco' : 'bank',
+  simulated: false, resolved: false, tab: 'overview',
+  chat: { bank: [], telco: [] }, loadedAt: new Date()
+};
+
+/* ---------- data shaping ---------- */
+function clockMinus(min){ const d = new Date(Date.now() - min*60000); return d.toTimeString().slice(0,5); }
+function fill(s, inc){ return String(s).replace(/\{start\}/g, clockMinus(inc.minutesAgo)); }
+function seeded(str){ let h=2166136261; for (const c of str){ h^=c.charCodeAt(0); h=Math.imul(h,16777619);} return () => { h^=h<<13; h^=h>>>17; h^=h<<5; return ((h>>>0)%10000)/10000; }; }
+
+function services(){
+  const P = DATA.profiles[state.profile];
+  let list = P.services.map(s => JSON.parse(JSON.stringify(s)));
+  if (state.simulated && P.simulate){
+    const sim = P.simulate, t = list.find(s => s.id === sim.service);
+    if (t){ t.status = sim.status; t.score = sim.score; Object.assign(t.kpi, sim.kpi); t.incident = JSON.parse(JSON.stringify(sim.incident)); t.incident.isNew = true; }
+  }
+  if (state.resolved){
+    list.forEach(s => { if (s.incident){ s.incident = null; s.status='ok'; s.score = 95; s.kpi.resp = s.kpi.respBase; s.kpi.fail = s.kpi.failBase; s.kpi.avail = 99.9; } });
+  }
+  list.forEach(s => {
+    if (s.incident){ const i = s.incident; ['summary','cause','impact','action','headline'].forEach(k => i[k] = fill(i[k], i)); i.evidence = i.evidence.map(e => fill(e, i)); i.start = clockMinus(i.minutesAgo); }
+    s.series = series(s);
+  });
+  const rank = {crit:0, warn:1, ok:2};
+  return list.sort((a,b) => rank[a.status]-rank[b.status]);
+}
+function series(s){
+  const r = seeded(state.profile + s.id), n = 96, base = s.incident ? 95 - r()*2 : s.score;
+  const pts = [];
+  for (let i=0;i<n;i++){ const daily = Math.sin((i/n)*Math.PI*2) * 1.4; pts.push(Math.max(0, Math.min(100, base + daily + (r()-.5)*3))); }
+  if (s.incident){ const k = Math.max(1, Math.ceil(s.incident.minutesAgo/15)); for (let j=0;j<k;j++){ const idx = n-k+j; const f = (j+1)/k; pts[idx] = pts[idx]*(1-f) + s.score*f; } }
+  pts[n-1] = s.score; return pts;
+}
+function fmtResp(ms){ return ms >= 1000 ? (ms/1000).toFixed(1)+' s' : Math.round(ms)+' ms'; }
+function fmtPct(v){ return (v >= 99.95 || v === 100) ? v.toFixed(2).replace(/0$/,'')+'%' : (v<1 ? v.toFixed(2).replace(/0$/,'') : v.toFixed(1))+'%'; }
+const WORD = {ok:'Healthy', warn:'Degraded', crit:'Disrupted', info:'Security'};
+
+/* ---------- small charts ---------- */
+function spark(pts, status){
+  const w=60,h=24, min=Math.min(...pts,40), max=100;
+  const xy = pts.map((v,i)=>[(i/(pts.length-1))*w, h-2-((v-min)/(max-min))*(h-4)]);
+  const col = status==='ok' ? 'var(--accent)' : `var(--${status})`;
+  const d = xy.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const last = xy[xy.length-1];
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="2.4" fill="${col}"/></svg>`;
+}
+function bigChart(s){
+  const W=340,H=160, L=30, R=8, T=10, B=24, iw=W-L-R, ih=H-T-B, pts=s.series;
+  const y = v => T + ih - (v/100)*ih, x = i => L + (i/(pts.length-1))*iw;
+  const col = s.status==='ok' ? 'var(--accent)' : `var(--${s.status})`;
+  const line = pts.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  const area = line + ` L${x(pts.length-1)} ${y(0)} L${x(0)} ${y(0)} Z`;
+  const grid = [0,50,100].map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+3.5}" text-anchor="end" font-size="10" fill="var(--ink-3)" font-family="JetBrains Mono, monospace">${v}</text>`).join('');
+  const xl = [[0,'−24h'],[48,'−12h'],[95,'Now']].map(([i,t])=>`<text x="${x(i)}" y="${H-6}" text-anchor="${i===0?'start':i===95?'end':'middle'}" font-size="10" fill="var(--ink-3)" font-family="JetBrains Mono, monospace">${t}</text>`).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Experience score over the last 24 hours, now ${s.score}">
+    ${grid}<path d="${area}" fill="${col}" opacity=".12"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${x(pts.length-1)}" cy="${y(s.score)}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2"/>${xl}</svg>`;
+}
+function ring(score, status){
+  const r=44, c=2*Math.PI*r, col = status==='ok' ? 'var(--ok)' : `var(--${status})`;
+  return `<div class="ring"><svg viewBox="0 0 104 104"><circle cx="52" cy="52" r="${r}" fill="none" stroke="var(--line)" stroke-width="9"/><circle cx="52" cy="52" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(score/100*c).toFixed(1)} ${c.toFixed(1)}"/></svg><div class="v"><b class="num">${score}</b><span>Experience</span></div></div>`;
+}
+
+/* ---------- brief + rendering ---------- */
+function snapshot(){
+  const P = DATA.profiles[state.profile], list = services();
+  const issues = list.filter(s => s.incident);
+  const worst = issues[0] ? issues[0].status : 'ok';
+  const score = Math.round(list.reduce((a,s)=>a+s.score,0)/list.length);
+  return {P, list, issues, worst, score};
+}
+function briefText(snap){
+  const {P, list, issues} = snap;
+  if (!issues.length) return `All ${list.length} business services are running normally. ${P.security.attacks24h} DDoS attack${P.security.attacks24h>1?'s were':' was'} stopped automatically in the last 24 hours with no impact on ${P.usersWord}.`;
+  const i = issues[0], s = i.incident;
+  let t = `${s.headline} since ${s.start}. ${s.cause.split('. ')[0]}. ${s.action}`;
+  if (issues.length>1) t += ` One more service needs attention: ${issues[1].name}.`;
+  return t;
+}
+function siteStatus(P, issues){
+  return P.sites.map(name => {
+    let st='ok'; issues.forEach(s => { if (s.incident.sites.includes(name) || s.incident.sites.includes('All regions')){ if (s.status==='crit' || st==='ok') st = s.status; } });
+    return {name, st};
+  });
+}
+
+function renderOverview(){
+  const snap = snapshot(), {P, list, issues, worst, score} = snap;
+  $('#orgName').textContent = P.org;
+  const h = !issues.length ? 'Everything is running normally' : issues.length===1 ? `${issues[0].name} needs attention` : `${issues.length} services need attention`;
+  const sub = !issues.length ? `${list.length} services watched · ${P.sites.length} regions` : `${issues.reduce((a,s)=>a+(s.status==='crit'?1:0),0) ? 'Customers are affected now' : 'Partial impact on '+P.usersWord} · ${list.length - issues.length} of ${list.length} healthy`;
+  $('#scr-overview').innerHTML = `
+    <div class="hero">${ring(score, worst)}<div><span class="chip ${worst}">${WORD[worst]}</span><h1 style="margin-top:8px">${esc(h)}</h1><p>${esc(sub)}</p></div></div>
+    <div class="brief"><div class="lbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>Copilot brief</div>
+      <p>${esc(briefText(snap))}</p>
+      <div class="acts">${issues.length?`<button class="btn" data-open="${issues[0].id}">See details</button>`:''}<button class="btn ghost" data-ask="${issues.length?'Why is this happening and what is being done?':'Give me a one-paragraph status for my morning meeting.'}">Ask Copilot</button></div></div>
+    <div class="sec-h"><h2>Business services</h2><span>Experience score</span></div>
+    <div class="list">${list.map(s => `<button class="row ${s.status}" data-open="${s.id}" aria-label="${esc(s.name)}, ${WORD[s.status]}, score ${s.score}">
+        <i class="stripe"></i><span class="t"><b>${esc(s.name)}</b><small>${s.incident ? esc(s.incident.headline) : esc(s.respLabel+' '+fmtResp(s.kpi.resp)+' · '+fmtPct(s.kpi.avail)+' available')}</small></span>
+        ${spark(s.series, s.status)}<span class="sc num">${s.score}</span></button>`).join('')}</div>
+    <div class="sec-h"><h2>DDoS protection · last 24 h</h2></div>
+    <div class="secu"><span class="big num">${P.security.attacks24h}</span><b>Attacks stopped automatically</b><small>Largest: ${esc(P.security.largest)} at ${esc(P.security.time)} on ${esc(P.security.target)}. ${esc(P.security.result)}</small></div>
+    <div class="sec-h"><h2>Regions</h2></div>
+    <div class="sites">${siteStatus(P, issues).map(x=>`<span class="site ${x.st}"><i></i>${esc(x.name)}</span>`).join('')}</div>
+    <div class="foot mono">Sample data · ${esc(P.kind.replace(' · sample data',''))}</div>`;
+  $('#badge').hidden = !issues.length; $('#badge').textContent = issues.length;
+  $('#liveDot').style.background = worst==='ok' ? '' : `var(--${worst})`;
+}
+
+function renderAlerts(){
+  const {P, issues} = snapshot();
+  const now = issues.map(s => `<button class="alert" data-open="${s.id}"><div class="top"><span class="chip ${s.status}">${WORD[s.status]} · ${esc(s.name)}</span><span class="mono" style="color:var(--ink-3)">${s.incident.start}</span></div><p><b>${esc(s.incident.headline)}.</b> ${esc(s.incident.impact)}</p></button>`).join('');
+  $('#scr-alerts').innerHTML = `
+    <div class="ask-h"><h1 style="font-family:var(--f-display);font-stretch:82%;font-size:1.5rem;margin:0">Alerts</h1><span class="mono" style="color:var(--ink-3)">${issues.length} active</span></div>
+    ${now || '<p class="note">No active issues. You will get a notification only when customers are affected.</p>'}
+    <div class="sec-h"><h2>Earlier</h2></div>
+    ${P.history.map(h => `<div class="alert past"><div class="top"><span class="chip ${h.sev}">${h.sev==='info'?'Security':'Resolved'}</span><span class="mono" style="color:var(--ink-3)">${esc(h.when)}</span></div><p>${esc(h.text)}</p></div>`).join('')}
+    <p class="note">Notification rule: push only when a business service drops below 80 or a region loses service for more than 5 minutes. Expect about one push a week.</p>`;
+}
+
+function openService(id){
+  const s = services().find(x => x.id === id); if (!s) return;
+  const k = s.kpi, ratio = k.resp / (k.respBase||1);
+  const i = s.incident;
+  $('#sheetBody').innerHTML = `
+    <div class="hd"><div><span class="chip ${s.status}">${WORD[s.status]}${i?' · since '+i.start:''}</span><h2>${esc(s.name)}</h2><span class="mono proto">${esc(s.protocol)} · ${esc(s.volume)}</span></div>
+      <button class="x" data-close aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="lead">${esc(i ? i.summary : 'Working normally. Response time and failure rate are within the usual range for this time of day.')}</p>
+    <div class="kpis">
+      <div class="kpi"><small>Experience</small><b class="num">${s.score}<span style="display:inline;font-size:.9rem;color:var(--ink-3)"> /100</span></b><span>Usual: 93–98</span></div>
+      <div class="kpi ${ratio>3?'vbad':ratio>1.4?'bad':''}"><small>${esc(s.respLabel)}</small><b class="num">${fmtResp(k.resp)}</b><span>Usual: ${fmtResp(k.respBase)}</span></div>
+      <div class="kpi ${k.fail>5?'vbad':k.fail>k.failBase*2+0.2?'bad':''}"><small>Failure rate</small><b class="num">${fmtPct(k.fail)}</b><span>Usual: ${fmtPct(k.failBase)}</span></div>
+      <div class="kpi ${k.avail<95?'vbad':k.avail<99.5?'bad':''}"><small>Availability</small><b class="num">${fmtPct(k.avail)}</b><span>Target: 99.9%</span></div>
+    </div>
+    <div class="card"><h3>Experience score · last 24 hours</h3>${bigChart(s)}</div>
+    ${i ? `<div class="card"><h3>Probable cause</h3><p>${esc(i.cause)}</p><h3 style="margin-top:12px">Impact</h3><p>${esc(i.impact)}</p><h3 style="margin-top:12px">What's being done</h3><p>${esc(i.action)}</p></div>
+    <div class="card"><h3>Evidence from packet data</h3><ul class="ev">${i.evidence.map(e=>`<li><span>${esc(e)}</span></li>`).join('')}</ul></div>
+    <div class="card"><h3>Regions affected</h3><p>${esc(i.sites.join(', '))}</p></div>` : ''}
+    <button class="btn" data-ask="${esc(i ? 'Explain the '+s.name+' problem in simple terms. Should I be worried?' : 'How has '+s.name+' performed today?')}" style="align-self:flex-start">Ask Copilot about this</button>`;
+  showSheet();
+}
+
+/* demo controls */
+function demoHTML(){
+  return `
+    <div class="demo-group"><h3>Customer type</h3><div class="seg">
+      <button data-profile="bank" aria-pressed="${state.profile==='bank'}">Bank</button><button data-profile="telco" aria-pressed="${state.profile==='telco'}">Telecom</button></div></div>
+    <div class="demo-group"><h3>Live scenario</h3>
+      <button class="dbtn primary" data-act="simulate" ${state.simulated?'disabled style="opacity:.55"':''}><span>Trigger an outage</span><small>sends a push alert</small></button>
+      <button class="dbtn" data-act="resolve"><span>Mark all issues resolved</span><small>back to green</small></button>
+      <button class="dbtn" data-act="reset"><span>Reset demo</span><small>starting state</small></button></div>`;
+}
+function openDemo(){
+  $('#sheetBody').innerHTML = `<div class="hd"><div><span class="chip info">Presenter only</span><h2>Demo controls</h2></div><button class="x" data-close aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${demoHTML()}<p class="note">Everything shown is sample data shaped like nGeniusONE service KPIs. Copilot answers come from Claude reading that data.</p>`;
+  showSheet();
+}
+function showSheet(){ $('#scrim').hidden = false; $('#sheet').hidden = false; $('#sheet .body').scrollTop = 0; }
+function hideSheet(){ $('#scrim').hidden = true; $('#sheet').hidden = true; }
+
+let pushTimer;
+function push(s){
+  const el = $('#push');
+  el.innerHTML = `<span class="ic">!</span><b>${esc(s.name)} · ${WORD[s.status]}</b><span>${esc(s.incident.headline)}. Tap for details.</span>`;
+  el.dataset.open = s.id; el.hidden = false;
+  clearTimeout(pushTimer); pushTimer = setTimeout(()=> el.hidden = true, 7000);
+}
+
+function act(a){
+  if (a==='simulate'){ state.simulated = true; state.resolved = false; hideSheet(); renderAll(); const s = services().find(x=>x.id===DATA.profiles[state.profile].simulate.service); setTimeout(()=>push(s), 600); }
+  if (a==='resolve'){ state.resolved = true; hideSheet(); renderAll(); }
+  if (a==='reset'){ state.simulated = false; state.resolved = false; state.chat[state.profile] = []; hideSheet(); renderAll(); }
+}
+function setProfile(p){ state.profile = p; state.simulated = false; state.resolved = false; store.set('sp.profile', p); hideSheet(); renderAll(); }
+
+/* ---------- tabs ---------- */
+function setTab(t){
+  state.tab = t;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab===t));
+  $('#scr-overview').hidden = t!=='overview'; $('#scr-alerts').hidden = t!=='alerts'; $('#scr-ask').hidden = t!=='ask';
+  $('#screens').scrollTop = 0;
+  if (t==='ask') renderChat();
+}
+
+/* ---------- Copilot chat ---------- */
+let sampleFn = null, sampleState = 'connecting', ctl = null;
+function contextForAI(){
+  const {P, list} = snapshot();
+  return JSON.stringify({
+    organization: P.org, type: P.kind, time_now: new Date().toTimeString().slice(0,5),
+    services: list.map(s => ({ name:s.name, technology:s.protocol, volume:s.volume, status:WORD[s.status], experience_score:s.score,
+      [s.respLabel]: fmtResp(s.kpi.resp), [s.respLabel+' usual']: fmtResp(s.kpi.respBase), failure_rate: fmtPct(s.kpi.fail), failure_rate_usual: fmtPct(s.kpi.failBase), availability: fmtPct(s.kpi.avail),
+      incident: s.incident ? { since:s.incident.start, headline:s.incident.headline, summary:s.incident.summary, probable_cause:s.incident.cause, impact:s.incident.impact, action_in_progress:s.incident.action, regions:s.incident.sites, evidence:s.incident.evidence } : null })),
+    ddos_last_24h: P.security, regions: P.sites, earlier_events: P.history
+  });
+}
+const RULES = () => `You are nGenius Copilot inside a mobile app for a company executive. This is a sales demo running on sample network data.
+Answer the executive's question using ONLY the data below, which comes from NETSCOUT packet-based monitoring (nGeniusONE service KPIs and Arbor DDoS protection).
+Rules:
+- Lead with the answer in one sentence. Then at most 3 short sentences or 3 bullets ("- ").
+- Business language for a CEO: customers affected, since when, why, what is being done, whether to worry. Explain any technical term in a few words.
+- Use the exact figures from the data. Never invent numbers, names or events. If the data does not cover the question, say so and suggest asking the NOC.
+- The app is read-only: the executive cannot change anything from here.
+- Reply in the same language as the question (French, English, Arabic or Darija).
+- No headings, no tables. You may use **bold** for one key figure.
+
+NETWORK DATA (JSON):
+${contextForAI()}`;
+
+function md(t){
+  const lines = esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split(/\n+/);
+  let out='', inList=false;
+  for (const l of lines){ const m = l.match(/^\s*[-•*]\s+(.*)/);
+    if (m){ if(!inList){out+='<ul>';inList=true;} out+=`<li>${m[1]}</li>`; }
+    else if (l.trim()){ if(inList){out+='</ul>';inList=false;} out+=`<p>${l}</p>`; } }
+  return out + (inList?'</ul>':'');
+}
+function offlineAnswer(q){
+  const {P, issues} = snapshot(), s = issues[0], ql = q.toLowerCase();
+  if (/ddos|attack|attaq|cyber|hack/.test(ql)) return `${P.security.attacks24h} DDoS attacks were stopped automatically in the last 24 hours. The largest was a ${P.security.largest} at ${P.security.time} on ${P.security.target}. ${P.security.result}`;
+  if (!s) return `Everything is running normally. All ${snapshot().list.length} business services are within their usual range, so there is nothing that needs your attention right now.`;
+  if (/impact|affect|combien|how many|clients?|customers?|subscri/.test(ql)) return `${s.incident.impact}\n- Service: ${s.name}\n- Since: ${s.incident.start}\n- Regions: ${s.incident.sites.join(', ')}`;
+  if (/why|cause|pourquoi|reason/.test(ql)) return `${s.incident.cause}\n\n${s.incident.action}`;
+  return `**${s.incident.headline}** since ${s.incident.start}. ${s.incident.cause.split('. ')[0]}.\n- Impact: ${s.incident.impact}\n- Action: ${s.incident.action}`;
+}
+function renderChat(){
+  const P = DATA.profiles[state.profile], msgs = state.chat[state.profile];
+  const status = sampleState==='live' ? '<span class="chip ok">Live AI</span>' : sampleState==='connecting' ? '<span class="chip info">Connecting…</span>' : '<span class="chip info">Demo answers</span>';
+  $('#chat').innerHTML = `<div class="ask-h"><h1>Ask Copilot</h1>${status}</div>
+    ${msgs.length ? '' : `<div class="msg ai"><p>Ask me anything about how ${esc(P.org)}'s network and services are doing. I answer from the packet data, and I'll tell you when I don't know.</p></div>`}
+    ${msgs.map((m,ix) => m.role==='user' ? `<div class="msg me">${esc(m.content)}</div>` : `<div class="msg ai${m.thinking?' think':''}" ${ix===msgs.length-1?'id="lastAi"':''}>${m.thinking?'Checking the network data…':md(m.content)}${m.thinking?'':`<span class="src">${m.offline?'Demo answer from sample data':'Grounded in sample nGeniusONE data'}</span>`}</div>`).join('')}
+    ${msgs.some(m=>m.thinking) ? '' : `<div class="sugg">${P.suggestions.map(q=>`<button data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`}`;
+  const c = $('#chat'); c.scrollTop = c.scrollHeight;
+}
+async function ask(q){
+  q = q.trim(); if (!q) return;
+  const prof = state.profile, msgs = state.chat[prof];
+  if (msgs.some(m => m.thinking)) return;
+  if (state.tab!=='ask') setTab('ask');
+  msgs.push({role:'user', content:q});
+  const ai = {role:'assistant', content:'', thinking:true}; msgs.push(ai); renderChat();
+  const finishOffline = () => { ai.thinking=false; ai.offline=true; ai.content = offlineAnswer(q); renderChat(); };
+  if (!sampleFn){ setTimeout(finishOffline, 700); return; }
+  ctl = new AbortController();
+  const turns = [{role:'user', content: RULES()}];
+  msgs.slice(0,-1).slice(-8).forEach(m => { if (m.content) turns.push({role:m.role, content:m.content}); });
+  try{
+    const res = await sampleFn(turns, { cache:false, modelTier:'quick', signal: ctl.signal,
+      onText: ({text}) => { ai.thinking=false; ai.content=text; if (state.tab==='ask' && state.profile===prof){ const el = $('#lastAi'); if (el){ el.classList.remove('think'); el.innerHTML = md(text); } else renderChat(); } } });
+    ai.thinking=false; ai.content = res.text;
+  }catch(e){
+    if (['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e && e.code)){ sampleFn = null; sampleState='offline'; }
+    ai.thinking=false; ai.offline=true; ai.content = (e && e.text) ? e.text : offlineAnswer(q);
+  }
+  if (state.profile===prof) renderChat();
+}
+
+/* ---------- wiring ---------- */
+function renderAll(){
+  renderOverview(); renderAlerts(); if (state.tab==='ask') renderChat();
+  $('#deskDemo').innerHTML = demoHTML();
+  $('#updated').textContent = 'Live · updated ' + new Date().toTimeString().slice(0,5);
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-open],[data-ask],[data-q],[data-close],[data-act],[data-profile],[data-tab]');
+  if (!t) { if (e.target.id==='scrim') hideSheet(); return; }
+  if (t.dataset.tab) setTab(t.dataset.tab);
+  else if (t.dataset.close !== undefined) hideSheet();
+  else if (t.dataset.act) act(t.dataset.act);
+  else if (t.dataset.profile) setProfile(t.dataset.profile);
+  else if (t.dataset.ask){ hideSheet(); ask(t.dataset.ask); }
+  else if (t.dataset.q) ask(t.dataset.q);
+  else if (t.dataset.open){ if (t.id==='push') t.hidden = true; openService(t.dataset.open); }
+});
+$('#demoBtn').addEventListener('click', openDemo);
+$('#scrim').addEventListener('click', hideSheet);
+document.addEventListener('keydown', e => { if (e.key==='Escape') hideSheet(); });
+$('#composer').addEventListener('submit', e => { e.preventDefault(); const v = $('#q').value; $('#q').value=''; ask(v); });
+
+renderAll();
+setInterval(() => { $('#updated').textContent = 'Live · updated ' + new Date().toTimeString().slice(0,5); }, 30000);
+
+if (window.claude && window.claude.use){
+  window.claude.use('sample').then(fn => { sampleFn = fn || null; sampleState = fn ? 'live' : 'offline'; if (state.tab==='ask') renderChat(); })
+    .catch(() => { sampleState='offline'; if (state.tab==='ask') renderChat(); });
+} else { sampleState = 'offline'; }
+})();
+</script>
+
+</body></html>
