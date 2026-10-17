@@ -2,10 +2,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="CNSS Pulse">
+<meta name="apple-mobile-web-app-title" content="Atlas Pulse">
 <link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest">
 <style>html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
-<title>CNSS Pulse</title>
+<title>Atlas Pulse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -209,7 +209,7 @@ button:focus-visible,input:focus-visible,.row:focus-visible{outline:2px solid va
 .month{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:18px}
 .month div{padding:12px 12px;border-left:1px solid var(--line);min-width:0}
 .month div:first-child{border-left:0}
-.month b{display:block;font-family:var(--f-display);font-stretch:80%;font-weight:800;font-size:1.45rem;line-height:1.1}
+.month b{display:block;font-family:var(--f-display);font-stretch:80%;font-weight:800;font-size:1.3rem;line-height:1.1;white-space:nowrap}
 .month span{display:block;font-size:.72rem;color:var(--ink-3);line-height:1.25;margin-top:2px}
 .threat{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
 .threat b{font-size:.92rem} .threat small{color:var(--ink-2);font-size:.8rem}
@@ -221,83 +221,452 @@ button:focus-visible,input:focus-visible,.row:focus-visible{outline:2px solid va
 </style>
 
 <!-- Données d'exemple. Structure inspirée des KPI de service nGeniusONE, des événements Arbor DDoS et des détections Omnis (NDR).
-     Remplacez ce bloc par un export de votre modèle de données NETSCOUT. Aucune donnée réelle de la CNSS. -->
+     Remplacez ce bloc par un export de votre modèle de données NETSCOUT. Aucune donnée réelle. -->
 <script type="application/json" id="dataset">
 {
- "org":"CNSS","unit":"Direction Générale","usersWord":"assurés et employeurs",
- "month":{"availability":"99,94 %","availabilityLabel":"Disponibilité des services digitaux en octobre","majors":"2","majorsLabel":"Incidents majeurs ce mois-ci","ddos":"41","ddosLabel":"Attaques DDoS bloquées ce mois-ci"},
- "services":[
-  {"id":"amo","name":"AMO · tiers payant","protocol":"API · pharmacies et cliniques conventionnées","volume":"5 600 validations/heure","respLabel":"Validation des droits",
-   "kpi":{"avail":98.9,"resp":4100,"respBase":350,"fail":4.8,"failBase":0.3},"status":"warn","score":73,
-   "incident":{"minutesAgo":34,"headline":"Validation des droits lente pour 1 pharmacie sur 5",
-    "summary":"Les pharmacies et cliniques conventionnées attendent 8 à 12 secondes pour vérifier les droits d'un assuré, surtout à Casablanca et Marrakech. Les assurés patientent au comptoir, mais les prises en charge aboutissent.",
-    "cause":"Le service de vérification des droits répond en 4,1 s au lieu de 350 ms. La base de données des droits AMO est ralentie par un traitement de masse lancé en heures ouvrées.",
-    "impact":"Environ 2 300 validations par heure retardées, dans près de 900 pharmacies.",
-    "action":"L'équipe exploitation a suspendu le traitement. Retour à la normale attendu sous 20 minutes.",
-    "sites":["Casablanca-Settat","Marrakech-Safi"],
-    "evidence":["Temps de réponse du service de droits : 4 100 ms (habituel 350 ms)","Temps d'attente de la base des droits AMO multiplié par 9 depuis {start}","Réseau vers les partenaires normal : 22 ms aller-retour","Délais dépassés côté pharmacies : 4,8 % (habituel 0,3 %)"]}},
-  {"id":"damancom","name":"Damancom · employeurs","protocol":"HTTPS · portail et échanges EDI","volume":"1 840 sessions/min","respLabel":"Chargement des pages",
-   "kpi":{"avail":99.95,"resp":620,"respBase":600,"fail":0.2,"failBase":0.2},"status":"ok","score":96},
-  {"id":"macnss","name":"Portail MACNSS · assurés","protocol":"HTTPS · portail web et mobile","volume":"2 900 sessions/min","respLabel":"Chargement des pages",
-   "kpi":{"avail":99.9,"resp":540,"respBase":520,"fail":0.4,"failBase":0.4},"status":"ok","score":95},
-  {"id":"taawidaty","name":"TAAWIDATY · prestations","protocol":"HTTPS · dépôt des demandes","volume":"640 demandes/heure","respLabel":"Dépôt d'une demande",
-   "kpi":{"avail":99.9,"resp":1100,"respBase":1050,"fail":0.3,"failBase":0.3},"status":"ok","score":95},
-  {"id":"guichet","name":"Application des agences","protocol":"Application métier · data center","volume":"2 450 agents connectés","respLabel":"Réponse au guichet",
-   "kpi":{"avail":99.8,"resp":480,"respBase":420,"fail":0.5,"failBase":0.4},"status":"ok","score":93},
-  {"id":"paiements","name":"Pensions et allocations","protocol":"Échanges bancaires · SFTP","volume":"Prochain virement : 25 du mois","respLabel":"Transfert des fichiers",
-   "kpi":{"avail":100,"resp":2.1,"respBase":2.0,"fail":0,"failBase":0,"respUnit":"min"},"status":"ok","score":98},
-  {"id":"contact","name":"Centre de contacts","protocol":"SIP · téléphonie et SVI","volume":"310 appels en cours","respLabel":"Mise en relation",
-   "kpi":{"avail":99.7,"resp":1300,"respBase":1250,"fail":0.6,"failBase":0.6},"status":"ok","score":94},
-  {"id":"bureau","name":"Messagerie et bureautique","protocol":"Microsoft 365 · internet","volume":"4 800 utilisateurs","respLabel":"Ouverture de la messagerie",
-   "kpi":{"avail":99.9,"resp":900,"respBase":880,"fail":0.2,"failBase":0.2},"status":"ok","score":96}
- ],
- "regions":[
-  {"id":"fes","name":"Fès-Meknès","agencies":13,"agents":265,"status":"warn","score":77,"kpi":{"resp":3200,"respBase":450,"backup":3,"down":0},
-   "incident":{"minutesAgo":131,"headline":"3 agences fonctionnent sur la liaison de secours 4G",
-    "summary":"Les agences Fès Saïss, Meknès Hamria et Taza restent ouvertes, mais chaque opération au guichet prend environ 3 secondes au lieu d'une demi-seconde. Les files d'attente s'allongent.",
-    "cause":"La liaison principale de l'opérateur vers ces 3 agences est coupée depuis {start}. Le trafic est passé automatiquement sur la liaison de secours 4G, moins rapide.",
-    "impact":"Environ 60 agents ralentis et près de 400 visiteurs attendus ce matin dans ces agences.",
-    "action":"Ticket ouvert chez l'opérateur, rétablissement annoncé vers 12:00.",
-    "sites":["Fès Saïss","Meknès Hamria","Taza"],
-    "evidence":["Liaison principale : aucun trafic depuis {start} sur les 3 sites","Liaison de secours 4G : 92 % utilisée, 180 ms de latence","Réponse au guichet : 3,2 s (habituel 0,45 s)","Les 10 autres agences de la région sont normales"]}},
-  {"id":"casa","name":"Casablanca-Settat","agencies":28,"agents":610,"status":"ok","score":94,"kpi":{"resp":430,"respBase":420,"backup":0,"down":0}},
-  {"id":"rabat","name":"Rabat-Salé-Kénitra","agencies":16,"agents":420,"status":"ok","score":95,"kpi":{"resp":400,"respBase":400,"backup":0,"down":0}},
-  {"id":"tanger","name":"Tanger-Tétouan-Al Hoceïma","agencies":12,"agents":230,"status":"ok","score":94,"kpi":{"resp":440,"respBase":430,"backup":0,"down":0}},
-  {"id":"marrakech","name":"Marrakech-Safi","agencies":12,"agents":240,"status":"ok","score":93,"kpi":{"resp":460,"respBase":440,"backup":0,"down":0}},
-  {"id":"souss","name":"Souss-Massa","agencies":9,"agents":170,"status":"ok","score":95,"kpi":{"resp":450,"respBase":440,"backup":0,"down":0}},
-  {"id":"oriental","name":"Oriental","agencies":9,"agents":160,"status":"ok","score":94,"kpi":{"resp":470,"respBase":460,"backup":0,"down":0}},
-  {"id":"beni","name":"Béni Mellal-Khénifra","agencies":7,"agents":120,"status":"ok","score":95,"kpi":{"resp":450,"respBase":450,"backup":0,"down":0}},
-  {"id":"draa","name":"Drâa-Tafilalet","agencies":6,"agents":95,"status":"ok","score":92,"kpi":{"resp":520,"respBase":500,"backup":0,"down":0}},
-  {"id":"guelmim","name":"Guelmim-Oued Noun","agencies":3,"agents":45,"status":"ok","score":94,"kpi":{"resp":510,"respBase":500,"backup":0,"down":0}},
-  {"id":"laayoune","name":"Laâyoune-Sakia El Hamra","agencies":3,"agents":50,"status":"ok","score":95,"kpi":{"resp":500,"respBase":490,"backup":0,"down":0}},
-  {"id":"dakhla","name":"Dakhla-Oued Ed-Dahab","agencies":2,"agents":25,"status":"ok","score":96,"kpi":{"resp":530,"respBase":520,"backup":0,"down":0}}
- ],
- "scenarios":{
-  "service":{"target":"damancom","kind":"service","status":"crit","score":45,"kpi":{"avail":81.6,"resp":2600,"fail":18.4},
-   "incident":{"minutesAgo":2,"headline":"18 % des employeurs ne peuvent plus se connecter à Damancom",
-    "summary":"Les employeurs et les fiduciaires reçoivent une erreur à la connexion. Ceux qui sont déjà connectés poursuivent leurs déclarations normalement.",
-    "cause":"Un des deux répartiteurs de charge du data center renvoie des erreurs depuis {start}, juste après une mise à jour de certificat. Ce n'est pas une attaque : le volume de trafic est normal.",
-    "impact":"Environ 330 connexions échouées par minute. Risque de retard dans les déclarations et de hausse des appels au centre de contacts.",
-    "action":"L'équipe réseau a été alertée automatiquement. Recommandé : retirer ce répartiteur du service et basculer tout le trafic sur le second.",
-    "sites":["Toutes les régions"],
-    "evidence":["Erreurs de connexion : 18,4 % (habituel 0,1 %)","100 % des erreurs passent par le même répartiteur de charge","Volume de trafic normal, aucune signature d'attaque DDoS","Serveurs applicatifs Damancom sains : réponse en 240 ms"]}},
-  "agency":{"target":"casa","kind":"region","status":"crit","score":58,"kpi":{"resp":0,"backup":0,"down":2},
-   "incident":{"minutesAgo":1,"headline":"2 agences de Casablanca coupées du réseau",
-    "summary":"Les agences Casa-Anfa et Casa-Maârif ne peuvent plus accéder aux applications. Les guichets sont à l'arrêt et l'accueil oriente les visiteurs vers les agences voisines.",
-    "cause":"Les deux liaisons, principale et secours, sont tombées en même temps à {start}. Les deux agences sont raccordées au même point d'accès opérateur : une coupure physique est probable.",
-    "impact":"Environ 45 agents sans accès et près de 300 visiteurs attendus d'ici midi.",
-    "action":"Ticket prioritaire ouvert chez l'opérateur. Recommandé : informer les assurés par SMS et renforcer les agences Casa-Bourgogne et Casa-Hay Hassani.",
-    "sites":["Casa-Anfa","Casa-Maârif"],
-    "evidence":["Aucun trafic depuis {start} sur les liaisons principale et secours des 2 agences","Les 2 agences partagent le même point d'accès opérateur","Les 26 autres agences de la région sont normales","Aucune anomalie côté data center"]}}
+ "org": "Banque Atlas",
+ "unit": "Direction Générale",
+ "usersWord": "clients",
+ "header": "Banque Atlas · Direction Générale",
+ "text": {
+  "svcHeading": "Services aux clients",
+  "alertsEmpty": "Aucun incident en cours. Vous recevez une notification seulement quand des clients sont touchés.",
+  "orgFull": "Banque Atlas (banque de détail fictive, données de démonstration)",
+  "aiIntro": "Tu es nGenius Copilot dans l'application mobile du Directeur Général de Banque Atlas, une banque de détail marocaine fictive. Il veut une visibilité complète sur les canaux digitaux, les paiements, les agences et les GAB. Ceci est une démonstration commerciale sur des données fictives.",
+  "aiWho": "les clients, les agences et les GAB",
+  "greeting": "Bonjour Monsieur le Directeur Général. Posez-moi vos questions sur les canaux digitaux, les paiements, les agences ou la cybersécurité. Je réponds à partir des données réseau, et je vous dis quand je ne sais pas."
  },
- "security":{"attacks24h":3,"largest":"6,8 Gbps HTTP flood","time":"02:40","target":"le portail Damancom","result":"Bloquée automatiquement en 35 secondes. Aucun impact pour les employeurs."},
- "threats":{"count":1,"time":"08:12","text":"Un poste de l'agence d'Agadir a tenté de joindre un domaine malveillant connu. Connexion bloquée et poste signalé au SOC pour analyse."},
- "history":[
-  {"when":"Aujourd'hui 08:12","sev":"info","text":"Menace détectée sur un poste de l'agence d'Agadir. Connexion bloquée, SOC prévenu."},
-  {"when":"Aujourd'hui 02:40","sev":"info","text":"Attaque DDoS de 6,8 Gbps contre le portail Damancom bloquée automatiquement. Aucun impact."},
-  {"when":"Hier 16:05","sev":"warn","text":"Centre de contacts : temps d'attente élevé pendant 25 minutes. Résolu."},
-  {"when":"10 oct. 23:40","sev":"warn","text":"Pic de déclarations Damancom à la date limite : charge x3, service resté disponible."}],
- "suggestions":["Qu'est-ce qui ne va pas en ce moment ?","Combien d'agences sont impactées ?","Y a-t-il eu des cyberattaques cette nuit ?","Résume la situation pour mon comité de direction","What is the impact on citizens?"]
+ "month": {
+  "availability": "99,96 %",
+  "availabilityLabel": "Disponibilité des canaux digitaux en octobre",
+  "majors": "1",
+  "majorsLabel": "Incident majeur ce mois-ci",
+  "ddos": "18",
+  "ddosLabel": "Attaques DDoS bloquées ce mois-ci"
+ },
+ "services": [
+  {
+   "id": "mobile",
+   "name": "Application mobile",
+   "protocol": "HTTPS · API REST",
+   "volume": "3 850 connexions/min",
+   "respLabel": "Temps de connexion",
+   "kpi": {
+    "avail": 99.6,
+    "resp": 1840,
+    "respBase": 180,
+    "fail": 3.1,
+    "failBase": 0.4
+   },
+   "status": "warn",
+   "score": 74,
+   "incident": {
+    "minutesAgo": 22,
+    "headline": "Connexion lente pour 14 % des utilisateurs de l'application",
+    "summary": "Les clients attendent 6 à 9 secondes pour se connecter à l'application, surtout à Casablanca et Rabat. Une fois connectés, paiements et virements fonctionnent normalement.",
+    "cause": "Le serveur d'authentification auth-02 répond en 1,8 s au lieu de 120 ms. Le réseau et les serveurs applicatifs sont normaux.",
+    "impact": "Environ 6 700 clients concernés. Le taux de réussite des connexions reste à 96,9 %.",
+    "action": "L'exploitation a ouvert le ticket INC-4471 et bascule les connexions vers auth-01.",
+    "sites": [
+     "Casablanca-Settat",
+     "Rabat-Salé-Kénitra"
+    ],
+    "evidence": [
+     "Temps de réponse de l'authentification sur auth-02 : 1 840 ms (habituel 120 ms)",
+     "Échecs de connexion passés de 0,4 % à 3,1 % depuis {start}",
+     "Aller-retour réseau vers le data center normal : 8 ms",
+     "Seuls les clients orientés vers auth-02 sont touchés (52 % des connexions)"
+    ]
+   }
+  },
+  {
+   "id": "cards",
+   "name": "Paiements par carte",
+   "protocol": "ISO 8583 · switch monétique",
+   "volume": "2 140 autorisations/min",
+   "respLabel": "Autorisation",
+   "kpi": {
+    "avail": 99.99,
+    "resp": 210,
+    "respBase": 205,
+    "fail": 0.3,
+    "failBase": 0.3
+   },
+   "status": "ok",
+   "score": 97
+  },
+  {
+   "id": "atm",
+   "name": "Réseau GAB",
+   "protocol": "NDC · 412 GAB",
+   "volume": "612 retraits/min",
+   "respLabel": "Durée d'un retrait",
+   "kpi": {
+    "avail": 99.8,
+    "resp": 2900,
+    "respBase": 2850,
+    "fail": 0.6,
+    "failBase": 0.6
+   },
+   "status": "ok",
+   "score": 95
+  },
+  {
+   "id": "core",
+   "name": "Core banking",
+   "protocol": "Système central · base Oracle",
+   "volume": "9 300 transactions/min",
+   "respLabel": "Transaction",
+   "kpi": {
+    "avail": 99.99,
+    "resp": 42,
+    "respBase": 40,
+    "fail": 0.1,
+    "failBase": 0.1
+   },
+   "status": "ok",
+   "score": 96
+  },
+  {
+   "id": "web",
+   "name": "Banque en ligne",
+   "protocol": "HTTPS · portail web",
+   "volume": "1 120 sessions/min",
+   "respLabel": "Chargement des pages",
+   "kpi": {
+    "avail": 99.9,
+    "resp": 640,
+    "respBase": 600,
+    "fail": 0.5,
+    "failBase": 0.4
+   },
+   "status": "ok",
+   "score": 94
+  },
+  {
+   "id": "swift",
+   "name": "Virements et SWIFT",
+   "protocol": "SWIFT · messages MT/MX",
+   "volume": "85 messages/min",
+   "respLabel": "Traitement",
+   "kpi": {
+    "avail": 100,
+    "resp": 380,
+    "respBase": 370,
+    "fail": 0,
+    "failBase": 0
+   },
+   "status": "ok",
+   "score": 98
+  },
+  {
+   "id": "contact",
+   "name": "Centre de relation client",
+   "protocol": "SIP · téléphonie et SVI",
+   "volume": "340 appels en cours",
+   "respLabel": "Mise en relation",
+   "kpi": {
+    "avail": 99.7,
+    "resp": 1200,
+    "respBase": 1150,
+    "fail": 0.8,
+    "failBase": 0.7
+   },
+   "status": "ok",
+   "score": 93
+  }
+ ],
+ "regions": [
+  {
+   "id": "marrakech",
+   "name": "Marrakech-Safi",
+   "agencies": 18,
+   "agents": 150,
+   "status": "warn",
+   "score": 78,
+   "kpi": {
+    "resp": 2600,
+    "respBase": 440,
+    "backup": 2,
+    "down": 0
+   },
+   "incident": {
+    "minutesAgo": 48,
+    "headline": "2 agences et 6 GAB sur la liaison de secours 4G",
+    "summary": "Les agences Guéliz et Safi Centre restent ouvertes, mais chaque opération au guichet prend environ 2,6 secondes. Les 6 GAB rattachés sont plus lents mais distribuent normalement.",
+    "cause": "La liaison principale de l'opérateur vers ces sites est coupée depuis {start}. Le trafic est passé automatiquement sur la liaison 4G de secours.",
+    "impact": "Environ 20 conseillers ralentis et des retraits plus lents sur 6 GAB.",
+    "action": "Ticket ouvert chez l'opérateur, rétablissement annoncé vers 14:00.",
+    "sites": [
+     "Marrakech Guéliz",
+     "Safi Centre"
+    ],
+    "evidence": [
+     "Liaison principale : aucun trafic depuis {start} sur les 2 agences",
+     "Liaison 4G : 88 % utilisée, 170 ms de latence",
+     "Réponse au guichet : 2,6 s (habituel 0,44 s)",
+     "Les 16 autres agences de la région sont normales"
+    ]
+   }
+  },
+  {
+   "id": "casa",
+   "name": "Casablanca-Settat",
+   "agencies": 48,
+   "agents": 520,
+   "status": "ok",
+   "score": 94,
+   "kpi": {
+    "resp": 430,
+    "respBase": 420,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "rabat",
+   "name": "Rabat-Salé-Kénitra",
+   "agencies": 26,
+   "agents": 260,
+   "status": "ok",
+   "score": 95,
+   "kpi": {
+    "resp": 400,
+    "respBase": 400,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "tanger",
+   "name": "Tanger-Tétouan-Al Hoceïma",
+   "agencies": 17,
+   "agents": 150,
+   "status": "ok",
+   "score": 94,
+   "kpi": {
+    "resp": 440,
+    "respBase": 430,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "fes",
+   "name": "Fès-Meknès",
+   "agencies": 16,
+   "agents": 140,
+   "status": "ok",
+   "score": 94,
+   "kpi": {
+    "resp": 450,
+    "respBase": 440,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "souss",
+   "name": "Souss-Massa",
+   "agencies": 12,
+   "agents": 100,
+   "status": "ok",
+   "score": 95,
+   "kpi": {
+    "resp": 450,
+    "respBase": 440,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "oriental",
+   "name": "Oriental",
+   "agencies": 10,
+   "agents": 85,
+   "status": "ok",
+   "score": 94,
+   "kpi": {
+    "resp": 470,
+    "respBase": 460,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "beni",
+   "name": "Béni Mellal-Khénifra",
+   "agencies": 8,
+   "agents": 65,
+   "status": "ok",
+   "score": 95,
+   "kpi": {
+    "resp": 450,
+    "respBase": 450,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "draa",
+   "name": "Drâa-Tafilalet",
+   "agencies": 5,
+   "agents": 40,
+   "status": "ok",
+   "score": 92,
+   "kpi": {
+    "resp": 520,
+    "respBase": 500,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "laayoune",
+   "name": "Laâyoune-Sakia El Hamra",
+   "agencies": 4,
+   "agents": 30,
+   "status": "ok",
+   "score": 95,
+   "kpi": {
+    "resp": 500,
+    "respBase": 490,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "guelmim",
+   "name": "Guelmim-Oued Noun",
+   "agencies": 3,
+   "agents": 22,
+   "status": "ok",
+   "score": 94,
+   "kpi": {
+    "resp": 510,
+    "respBase": 500,
+    "backup": 0,
+    "down": 0
+   }
+  },
+  {
+   "id": "dakhla",
+   "name": "Dakhla-Oued Ed-Dahab",
+   "agencies": 2,
+   "agents": 14,
+   "status": "ok",
+   "score": 96,
+   "kpi": {
+    "resp": 530,
+    "respBase": 520,
+    "backup": 0,
+    "down": 0
+   }
+  }
+ ],
+ "scenarios": {
+  "service": {
+   "label": "Paiements par carte refusés",
+   "target": "cards",
+   "kind": "service",
+   "status": "crit",
+   "score": 46,
+   "kpi": {
+    "avail": 91.0,
+    "resp": 2400,
+    "fail": 9.2
+   },
+   "incident": {
+    "minutesAgo": 2,
+    "headline": "9 % des paiements par carte sont refusés",
+    "summary": "Les paiements en magasin et en ligne échouent pour environ 1 client sur 11, dans toutes les régions. Les retraits aux GAB ne sont pas touchés.",
+    "cause": "Une des deux liaisons vers le switch monétique (liaison B) ne répond plus depuis {start}. Les transactions envoyées sur cette liaison expirent et sont refusées avec le code 91.",
+    "impact": "Environ 190 paiements refusés par minute, soit près de 76 000 MAD de dépenses clients bloquées chaque minute (ticket moyen 400 MAD).",
+    "action": "L'exploitation a été alertée automatiquement. Recommandé : retirer la liaison B pour faire passer tout le trafic sur la liaison A.",
+    "sites": [
+     "Toutes les régions"
+    ],
+    "evidence": [
+     "Code réponse ISO 8583 91 (émetteur indisponible) passé de 0,1 % à 9,2 %",
+     "Liaison B : 38 % de retransmissions TCP et plus aucune réponse depuis {start}",
+     "Liaison A saine : réponse en 205 ms",
+     "Refus répartis dans toutes les régions : ce n'est pas un problème d'agence"
+    ]
+   }
+  },
+  "agency": {
+   "label": "Agences coupées à Casablanca",
+   "target": "casa",
+   "kind": "region",
+   "status": "crit",
+   "score": 60,
+   "kpi": {
+    "resp": 0,
+    "backup": 0,
+    "down": 3
+   },
+   "incident": {
+    "minutesAgo": 1,
+    "headline": "3 agences et 9 GAB de Casablanca coupés du réseau",
+    "summary": "Les agences Maârif, Anfa et Racine ne peuvent plus accéder aux applications et leurs 9 GAB sont hors service. L'accueil oriente les clients vers les agences voisines.",
+    "cause": "Les liaisons principale et de secours sont tombées en même temps à {start}. Les trois agences dépendent du même point d'accès opérateur : une coupure physique est probable.",
+    "impact": "Environ 35 conseillers sans accès, 9 GAB indisponibles et près de 250 clients attendus d'ici midi.",
+    "action": "Ticket prioritaire ouvert chez l'opérateur. Recommandé : informer les clients par SMS et renforcer les agences voisines.",
+    "sites": [
+     "Casa Maârif",
+     "Casa Anfa",
+     "Casa Racine"
+    ],
+    "evidence": [
+     "Aucun trafic depuis {start} sur les liaisons principale et de secours des 3 agences",
+     "Les 3 agences partagent le même point d'accès opérateur",
+     "Les 9 GAB rattachés ne répondent plus au serveur monétique",
+     "Les 45 autres agences de la région sont normales"
+    ]
+   }
+  }
+ },
+ "security": {
+  "attacks24h": 2,
+  "largest": "4,2 Gbps UDP flood",
+  "time": "03:14",
+  "target": "le portail de banque en ligne",
+  "result": "Bloquée automatiquement en 41 secondes. Aucun impact pour les clients."
+ },
+ "threats": {
+  "count": 1,
+  "time": "09:05",
+  "text": "Un poste de l'agence Tanger Centre a tenté de joindre un serveur de phishing connu. Connexion bloquée et poste signalé au SOC pour analyse."
+ },
+ "history": [
+  {
+   "when": "Aujourd'hui 09:05",
+   "sev": "info",
+   "text": "Menace détectée sur un poste de l'agence Tanger Centre. Connexion bloquée, SOC prévenu."
+  },
+  {
+   "when": "Aujourd'hui 03:14",
+   "sev": "info",
+   "text": "Attaque DDoS de 4,2 Gbps contre la banque en ligne bloquée automatiquement. Aucun impact."
+  },
+  {
+   "when": "Hier 18:20",
+   "sev": "warn",
+   "text": "Banque en ligne lente pendant 6 minutes. Résolu sans intervention."
+  },
+  {
+   "when": "30 sept. 23:50",
+   "sev": "warn",
+   "text": "Pic de paiements de fin de mois : charge x2,5 sur le switch monétique, service resté disponible."
+  }
+ ],
+ "suggestions": [
+  "Qu'est-ce qui ne va pas en ce moment ?",
+  "Combien de clients sont touchés ?",
+  "Y a-t-il eu une cyberattaque cette nuit ?",
+  "Que faut-il faire ?",
+  "Résume la situation pour mon comité de direction"
+ ]
 }
 </script>
 
@@ -306,10 +675,9 @@ button:focus-visible,input:focus-visible,.row:focus-visible{outline:2px solid va
   <div class="device" id="device">
     <header class="topbar">
       <div class="org">
-        <b id="orgName">CNSS · Direction Générale</b>
+        <b id="orgName"></b>
         <span class="live mono"><i class="dot" id="liveDot"></i><span id="updated">En direct</span></span>
       </div>
-      <button class="pill-btn" id="demoBtn" aria-haspopup="dialog">Démo</button>
     </header>
 
     <button class="push" id="push" hidden></button>
@@ -344,45 +712,169 @@ button:focus-visible,input:focus-visible,.row:focus-visible{outline:2px solid va
 
   <aside class="presenter" aria-label="À propos du prototype">
     <div>
-      <div class="eyebrow">Prototype · CNSS</div>
-      <h2>Toute la CNSS dans la poche du Directeur Général</h2>
-      <p>Les services aux assurés et aux employeurs, les agences de chaque région et la cybersécurité, sur un seul écran. Des réponses en français clair, appuyées sur les données réseau.</p>
+      <div class="eyebrow">Prototype · Banque</div>
+      <h2>Toute la banque dans la poche du Directeur Général</h2>
+      <p>Les canaux digitaux, les paiements, les agences et les GAB de chaque région, et la cybersécurité, sur un seul écran. Des réponses en français clair, appuyées sur les données réseau.</p>
     </div>
     <div class="flow">
       <div><b>Sondes InfiniStream</b>Capture des paquets au data center, à l'entrée internet et sur le réseau des agences</div>
-      <div><b>nGeniusONE · Smart Data</b>Temps de réponse, échecs et disponibilité par service et par agence</div>
+      <div><b>nGeniusONE · Smart Data</b>Temps de réponse, échecs et disponibilité par service, agence et GAB</div>
       <div><b>Arbor + Omnis Cyber Intelligence</b>Attaques DDoS bloquées et menaces détectées sur le réseau</div>
-      <div><b>nGenius Copilot + agent DG</b>Vérifie toutes les 5 minutes, mesure l'impact pour les assurés, décide s'il faut alerter</div>
+      <div><b>nGenius Copilot + agent dirigeant</b>Vérifie toutes les 5 minutes, mesure l'impact pour les clients, décide s'il faut alerter</div>
       <div><b>Application mobile</b>Lecture seule, accès SSO et MFA</div>
     </div>
-    <div class="demo-group" id="deskDemo"></div>
     <p class="mono">Données fictives à des fins de démonstration. Prototype NETSCOUT.</p>
   </aside>
 </div>
 
 <script type="application/json" id="xf-data">{
- "service:amo":{"actions":[
-   {"title":"Confirmer l’arrêt du traitement de masse","owner":"Exploitation","eta":"5 min","effect":"Retour à 350 ms pour les pharmacies","inProgress":true},
-   {"title":"Reprogrammer ce traitement la nuit","owner":"DSI","eta":"Demain","effect":"Évite que l’incident se reproduise","recommended":true},
-   {"title":"Informer les pharmacies via le portail partenaires","owner":"Communication","eta":"15 min","effect":"Moins d’appels des partenaires"}],
-  "impact":[{"label":"Pharmacies concernées","value":900},{"label":"Validations retardées","perMin":38}]},
- "region:fes":{"actions":[
-   {"title":"Relancer l’opérateur sur le ticket ouvert","owner":"Réseau","eta":"10 min","effect":"Rétablissement avant 12:00","inProgress":true},
-   {"title":"Orienter les assurés vers MACNSS et TAAWIDATY","owner":"Agences","eta":"5 min","effect":"Files d’attente plus courtes","recommended":true},
-   {"title":"Prioriser les opérations urgentes au guichet","owner":"Direction régionale","eta":"15 min","effect":"Les dossiers urgents passent en premier"}],
-  "impact":[{"label":"Agents ralentis","value":60},{"label":"Visiteurs attendus ce matin","value":400}]},
- "service:damancom":{"actions":[
-   {"title":"Retirer le répartiteur défaillant du service","owner":"Réseau","eta":"3 min","effect":"Tous les employeurs peuvent se reconnecter","recommended":true},
-   {"title":"Annuler la mise à jour du certificat","owner":"Sécurité","eta":"15 min","effect":"Corrige la cause"},
-   {"title":"Afficher un message sur Damancom et au centre de contacts","owner":"Communication","eta":"10 min","effect":"Moins d’appels d’employeurs"}],
-  "impact":[{"label":"Connexions échouées","perMin":330},{"label":"Appels supplémentaires","perMin":12}],"escalateMin":30},
- "region:casa":{"actions":[
-   {"title":"Escalader le ticket prioritaire chez l’opérateur","owner":"Réseau","eta":"5 min","effect":"Intervention terrain plus rapide","recommended":true},
-   {"title":"Envoyer un SMS aux assurés ayant rendez-vous","owner":"Relation client","eta":"15 min","effect":"Évite des déplacements inutiles"},
-   {"title":"Renforcer Casa-Bourgogne et Casa-Hay Hassani","owner":"Direction régionale","eta":"30 min","effect":"Absorbe les visiteurs réorientés"}],
-  "impact":[{"label":"Agents sans accès","value":45},{"label":"Visiteurs attendus d’ici midi","value":300}],"escalateMin":30}
-}
-</script>
+ "service:mobile": {
+  "actions": [
+   {
+    "title": "Basculer toutes les connexions vers auth-01",
+    "owner": "Exploitation",
+    "eta": "5 min",
+    "effect": "Temps de connexion normal pour tous les clients",
+    "inProgress": true
+   },
+   {
+    "title": "Redémarrer le service d'authentification sur auth-02",
+    "owner": "Équipe identité",
+    "eta": "15 min",
+    "effect": "Retrouve toute la capacité de connexion",
+    "recommended": true
+   },
+   {
+    "title": "Afficher un bandeau dans l'application",
+    "owner": "Canaux digitaux",
+    "eta": "10 min",
+    "effect": "Moins d'appels au centre de relation client"
+   }
+  ],
+  "impact": [
+   {
+    "label": "Clients concernés",
+    "value": 6700
+   },
+   {
+    "label": "Connexions lentes",
+    "perMin": 540
+   },
+   {
+    "label": "Connexions échouées",
+    "perMin": 120
+   }
+  ]
+ },
+ "service:cards": {
+  "actions": [
+   {
+    "title": "Retirer la liaison B vers le switch monétique",
+    "owner": "Exploitation",
+    "eta": "2 min",
+    "effect": "Supprime environ 90 % des refus immédiatement",
+    "recommended": true
+   },
+   {
+    "title": "Ouvrir un ticket prioritaire chez l'opérateur de la liaison",
+    "owner": "Équipe réseau",
+    "eta": "5 min",
+    "effect": "Réparation de la liaison B"
+   },
+   {
+    "title": "Informer les agences et le centre de relation client",
+    "owner": "Opérations",
+    "eta": "10 min",
+    "effect": "Une réponse claire et unique aux clients"
+   }
+  ],
+  "impact": [
+   {
+    "label": "Dépenses bloquées",
+    "perMin": 76000,
+    "unit": "MAD",
+    "money": true
+   },
+   {
+    "label": "Paiements refusés",
+    "perMin": 190
+   }
+  ],
+  "escalateMin": 30
+ },
+ "region:marrakech": {
+  "actions": [
+   {
+    "title": "Relancer l'opérateur sur le ticket ouvert",
+    "owner": "Réseau",
+    "eta": "10 min",
+    "effect": "Rétablissement avant 14:00",
+    "inProgress": true
+   },
+   {
+    "title": "Limiter les opérations lourdes au guichet",
+    "owner": "Direction régionale",
+    "eta": "15 min",
+    "effect": "Réduit l'attente des clients",
+    "recommended": true
+   },
+   {
+    "title": "Orienter les clients vers l'application mobile",
+    "owner": "Agences",
+    "eta": "5 min",
+    "effect": "Moins de passages au guichet"
+   }
+  ],
+  "impact": [
+   {
+    "label": "Conseillers ralentis",
+    "value": 20
+   },
+   {
+    "label": "GAB plus lents",
+    "value": 6
+   }
+  ]
+ },
+ "region:casa": {
+  "actions": [
+   {
+    "title": "Escalader le ticket prioritaire chez l'opérateur",
+    "owner": "Réseau",
+    "eta": "5 min",
+    "effect": "Intervention terrain plus rapide",
+    "recommended": true
+   },
+   {
+    "title": "Envoyer un SMS aux clients du quartier",
+    "owner": "Relation client",
+    "eta": "15 min",
+    "effect": "Oriente vers les GAB et agences voisins"
+   },
+   {
+    "title": "Renforcer Casa Bourgogne et Casa Gauthier",
+    "owner": "Direction régionale",
+    "eta": "30 min",
+    "effect": "Absorbe les clients réorientés"
+   }
+  ],
+  "impact": [
+   {
+    "label": "GAB indisponibles",
+    "value": 9
+   },
+   {
+    "label": "Conseillers sans accès",
+    "value": 35
+   },
+   {
+    "label": "Clients attendus d'ici midi",
+    "value": 250
+   }
+  ],
+  "escalateMin": 30
+ }
+}</script>
 <script>
 /* Executive features: next best actions, business impact, share brief. Shared by Atlas Pulse and CNSS Pulse. */
 window.XF = (function(){
@@ -656,7 +1148,7 @@ function renderOverview(){
       <p>${esc(brief(m))}</p>
       <div class="acts">${m.issues.length?`<button class="btn" data-open="${m.issues[0].kind}:${m.issues[0].id}">Voir le détail</button>`:''}<button class="btn ghost" data-ask="${m.issues.length?'Pourquoi cela arrive-t-il et que fait-on ?':'Résume la situation pour mon comité de direction'}">Demander à Copilot</button></div></div>
     <div class="month"><div><b class="num">${D.month.availability}</b><span>${D.month.availabilityLabel}</span></div><div><b class="num">${D.month.majors}</b><span>${D.month.majorsLabel}</span></div><div><b class="num">${D.month.ddos}</b><span>${D.month.ddosLabel}</span></div></div>
-    <div class="sec-h"><h2>Services aux assurés et employeurs</h2><span>Score</span></div>
+    <div class="sec-h"><h2>${esc(D.text.svcHeading)}</h2><span>Score</span></div>
     <div class="list">${m.svcs.map(rowSvc).join('')}</div>
     <div class="sec-h"><h2>Agences</h2><button class="btn ghost" style="padding:4px 10px;font-size:.74rem" data-tab="regions">Toutes les régions</button></div>
     <div class="list">${m.regs.slice(0,3).map(rowReg).join('')}</div>
@@ -673,7 +1165,7 @@ function renderOverview(){
 function renderRegions(){
   const m=model();
   $('#scr-regions').innerHTML = `
-    <div class="ask-h"><h1 style="font-family:var(--f-display);font-stretch:82%;font-size:1.5rem;margin:0">Agences</h1><span class="mono" style="color:var(--ink-3)">${m.agTotal} agences · 12 régions</span></div>
+    <div class="ask-h"><h1 style="font-family:var(--f-display);font-stretch:82%;font-size:1.5rem;margin:0">Agences</h1><span class="mono" style="color:var(--ink-3)">${m.agTotal} agences · ${m.regs.length} régions</span></div>
     <div class="month"><div><b class="num">${m.agTotal-m.agDown}</b><span>Agences en ligne</span></div><div><b class="num" style="${m.agBackup?'color:var(--warn)':''}">${m.agBackup}</b><span>Sur liaison de secours</span></div><div><b class="num" style="${m.agDown?'color:var(--crit)':''}">${m.agDown}</b><span>Coupées du réseau</span></div></div>
     <div class="sec-h"><h2>Régions</h2><span>En ligne · Score</span></div>
     <div class="list">${m.regs.map(rowReg).join('')}</div>
@@ -684,7 +1176,7 @@ function renderAlerts(){
   const now = m.issues.map(e=>`<button class="alert" data-open="${e.kind}:${e.id}"><div class="top"><span class="chip ${e.status}">${WORD[e.status]} · ${esc(short(e))}</span><span class="mono" style="color:var(--ink-3)">${e.incident.start}</span></div><p><b>${esc(e.incident.headline)}.</b> ${esc(e.incident.impact)}</p></button>`).join('');
   $('#scr-alerts').innerHTML = `
     <div class="ask-h"><h1 style="font-family:var(--f-display);font-stretch:82%;font-size:1.5rem;margin:0">Alertes</h1><span class="mono" style="color:var(--ink-3)">${m.issues.length} en cours</span></div>
-    ${now || '<p class="note">Aucun incident en cours. Vous recevez une notification seulement quand des assurés ou des employeurs sont touchés.</p>'}
+    ${now || `<p class="note">${esc(D.text.alertsEmpty)}</p>`}
     <div class="sec-h"><h2>Plus tôt</h2></div>
     ${D.history.map(h=>`<div class="alert past"><div class="top"><span class="chip ${h.sev}">${h.sev==='info'?'Sécurité':'Résolu'}</span><span class="mono" style="color:var(--ink-3)">${esc(h.when)}</span></div><p>${esc(h.text)}</p></div>`).join('')}
     <p class="note">Règle de notification : alerte uniquement si un service passe sous 80, si une agence est coupée plus de 5 minutes, ou si une cyberattaque n'est pas bloquée automatiquement. Environ une notification par semaine.</p>`;
@@ -725,13 +1217,13 @@ function openEntity(ref){
 /* ---------- demo controls ---------- */
 function demoHTML(){
   return `<div class="demo-group"><h3>Scénarios en direct</h3>
-    <button class="dbtn primary" data-act="svc" ${state.svc?'disabled style="opacity:.55"':''}><span>Panne Damancom</span><small>envoie une alerte</small></button>
-    <button class="dbtn primary" data-act="ag" ${state.ag?'disabled style="opacity:.55"':''}><span>Agences coupées à Casablanca</span><small>envoie une alerte</small></button>
+    <button class="dbtn primary" data-act="svc" ${state.svc?'disabled style="opacity:.55"':''}><span>${esc(D.scenarios.service.label)}</span><small>envoie une alerte</small></button>
+    <button class="dbtn primary" data-act="ag" ${state.ag?'disabled style="opacity:.55"':''}><span>${esc(D.scenarios.agency.label)}</span><small>envoie une alerte</small></button>
     <button class="dbtn" data-act="resolve"><span>Tout résoudre</span><small>retour au vert</small></button>
     <button class="dbtn" data-act="reset"><span>Réinitialiser la démo</span><small>état de départ</small></button></div>`;
 }
 function openDemo(){
-  $('#sheetBody').innerHTML = `<div class="hd"><div><span class="chip info">Présentateur uniquement</span><h2>Commandes de démo</h2></div><button class="x" data-close aria-label="Fermer"><svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${demoHTML()}<p class="note">Toutes les données sont fictives et suivent la structure des KPI nGeniusONE, des événements Arbor et des détections Omnis. Aucune donnée réelle de la CNSS.</p>`;
+  $('#sheetBody').innerHTML = `<div class="hd"><div><span class="chip info">Présentateur uniquement</span><h2>Commandes de démo</h2></div><button class="x" data-close aria-label="Fermer"><svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${demoHTML()}<p class="note">Toutes les données sont fictives et suivent la structure des KPI nGeniusONE, des événements Arbor et des détections Omnis. Aucune donnée réelle.</p>`;
   showSheet();
 }
 function showSheet(){ $('#scrim').hidden=false; $('#sheet').hidden=false; $('#sheetBody').scrollTop=0; }
@@ -759,18 +1251,18 @@ let sampleFn=null, sampleState='connecting';
 function context(){
   const m=model();
   const inc = i => i ? {depuis:i.start, titre:i.headline, resume:i.summary, cause_probable:i.cause, impact:i.impact, action_en_cours:i.action, lieux:i.sites, preuves:i.evidence} : null;
-  return JSON.stringify({ organisation:'CNSS (données fictives de démonstration)', heure:hhmm(new Date()),
+  return JSON.stringify({ organisation:D.text.orgFull, heure:hhmm(new Date()),
     services:m.svcs.map(s=>({nom:s.name, technologie:s.protocol, volume:s.volume, etat:WORD[s.status], score:s.score, [s.respLabel]:fmtResp(s.kpi.resp,s.kpi.respUnit), habituel:fmtResp(s.kpi.respBase,s.kpi.respUnit), taux_echec:fmtPct(s.kpi.fail), disponibilite:fmtPct(s.kpi.avail), incident:s.incident?{...inc(s.incident), ...XF.prompt('service:'+s.id)}:null})),
     regions:m.regs.map(r=>({nom:r.name, agences:r.agencies, agences_coupees:r.kpi.down||0, agences_sur_secours:r.kpi.backup||0, reponse_guichet:fmtResp(r.kpi.resp), agents:r.agents, etat:WORD[r.status], score:r.score, incident:r.incident?{...inc(r.incident), ...XF.prompt('region:'+r.id)}:null})),
     total_agences:m.agTotal, mois_en_cours:D.month, ddos_24h:D.security, menaces_detectees:D.threats, evenements_precedents:D.history });
 }
-const RULES = () => `Tu es nGenius Copilot dans l'application mobile du Directeur Général de la CNSS (Caisse Nationale de Sécurité Sociale, Maroc). Il vient d'être nommé et veut une visibilité complète sur les services et les agences. Ceci est une démonstration commerciale sur des données fictives.
+const RULES = () => `${D.text.aiIntro}
 Réponds uniquement à partir des données ci-dessous, issues de la supervision NETSCOUT basée sur les paquets (KPI nGeniusONE, protection DDoS Arbor, détection de menaces Omnis).
 Règles :
 - Commence par la réponse en une phrase. Puis au plus 3 phrases courtes ou 3 puces ("- ").
-- Langage de dirigeant : impact pour les assurés, les employeurs et les agences, depuis quand, pourquoi, ce qui est fait, faut-il s'inquiéter. Explique tout terme technique en quelques mots.
+- Langage de dirigeant : impact pour ${D.text.aiWho}, depuis quand, pourquoi, ce qui est fait, faut-il s'inquiéter. Explique tout terme technique en quelques mots.
 - Utilise les chiffres exacts des données. N'invente jamais de chiffre, de nom ou d'événement. Si les données ne couvrent pas la question, dis-le et propose de demander à l'équipe d'exploitation.
-- Si on te demande quoi faire, utilise recommended_actions (précise ce qui est déjà en cours) et rappelle que le DG peut toucher « Demander à l’exploitation » sur l'incident : l'exploitation l'applique, rien ne change depuis le téléphone.
+- Si on te demande quoi faire, utilise recommended_actions (précise ce qui est déjà en cours) et rappelle que le dirigeant peut toucher « Demander à l’exploitation » sur l'incident : l'exploitation l'applique, rien ne change depuis le téléphone.
 - Pour les questions d'impact, utilise business_impact ; les valeurs per_minute s'accumulent depuis le début de l'incident.
 - Réponds dans la langue de la question (français, anglais, arabe ou darija).
 - Pas de titres ni de tableaux. Tu peux mettre un chiffre clé en **gras**.
@@ -796,7 +1288,7 @@ function renderChat(){
   const msgs=state.chat;
   const chip = sampleState==='live'?'<span class="chip ok">IA en direct</span>':sampleState==='connecting'?'<span class="chip info">Connexion…</span>':'<span class="chip info">Réponses de démo</span>';
   $('#chat').innerHTML = `<div class="ask-h"><h1>Copilot</h1>${chip}</div>
-    ${msgs.length?'':`<div class="msg ai"><p>Bonjour Monsieur le Directeur Général. Posez-moi vos questions sur les services de la CNSS, les agences ou la cybersécurité. Je réponds à partir des données réseau, et je vous dis quand je ne sais pas.</p></div>`}
+    ${msgs.length?'':`<div class="msg ai"><p>${esc(D.text.greeting)}</p></div>`}
     ${msgs.map((x,ix)=>x.role==='user'?`<div class="msg me">${esc(x.content)}</div>`:`<div class="msg ai${x.thinking?' think':''}" ${ix===msgs.length-1?'id="lastAi"':''}>${x.thinking?'Analyse des données réseau…':md(x.content)}${x.thinking?'':`<span class="src">${x.offline?'Réponse de démo, données fictives':'Fondé sur les données fictives nGeniusONE'}</span>`}</div>`).join('')}
     ${msgs.some(x=>x.thinking)?'':`<div class="sugg">${D.suggestions.map(q=>`<button data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`}`;
   const c=$('#chat'); c.scrollTop=c.scrollHeight;
@@ -819,7 +1311,7 @@ async function ask(q){
 }
 
 /* ---------- wiring ---------- */
-function renderAll(){ renderOverview(); renderRegions(); renderAlerts(); if (state.tab==='ask') renderChat(); $('#deskDemo').innerHTML=demoHTML(); $('#updated').textContent='En direct · mis à jour '+hhmm(new Date()); }
+function renderAll(){ renderOverview(); renderRegions(); renderAlerts(); if (state.tab==='ask') renderChat(); $('#updated').textContent='En direct · mis à jour '+hhmm(new Date()); }
 document.addEventListener('click', ev=>{
   const t=ev.target.closest('[data-open],[data-ask],[data-q],[data-close],[data-act],[data-tab]'); if (!t) return;
   if (t.dataset.tab){ hideSheet(); setTab(t.dataset.tab); }
@@ -829,11 +1321,13 @@ document.addEventListener('click', ev=>{
   else if (t.dataset.q) ask(t.dataset.q);
   else if (t.dataset.open){ if (t.id==='push') t.hidden=true; openEntity(t.dataset.open); }
 });
-$('#demoBtn').addEventListener('click', openDemo);
+/* Presenter controls are hidden: press and hold the organisation name for 1 second to open them. */
+(function(){ const el=$('#orgName'); let h; const start=()=>{ h=setTimeout(openDemo,900); }; const stop=()=>clearTimeout(h); el.addEventListener('touchstart',start,{passive:true}); el.addEventListener('mousedown',start); ['touchend','touchmove','mouseup','mouseleave'].forEach(t=>el.addEventListener(t,stop)); el.style.webkitUserSelect='none'; el.style.userSelect='none'; el.style.webkitTouchCallout='none'; })();
+$('#orgName').textContent = D.header;
 $('#scrim').addEventListener('click', hideSheet);
 document.addEventListener('keydown', ev=>{ if (ev.key==='Escape') hideSheet(); });
 $('#composer').addEventListener('submit', ev=>{ ev.preventDefault(); const v=$('#q').value; $('#q').value=''; ask(v); });
-XF.init({lang:'fr', org:'CNSS', app: document.title, reopen: k => openEntity(k)});
+XF.init({lang:'fr', org:D.org, app: document.title, reopen: k => openEntity(k)});
 renderAll();
 setInterval(()=>{ $('#updated').textContent='En direct · mis à jour '+hhmm(new Date()); },30000);
 if (window.claude && window.claude.use){
